@@ -1,0 +1,212 @@
+getwd()
+setwd("C:/Users/kolli/data science/R-DS")
+fulldata <- read.csv("Log-Reg-Case-Study.csv")
+ View(fulldata)
+nrow(fulldata)
+View(fulldata[!complete.cases(fulldata),])
+set.seed(123)
+?sample
+train=sample(1:nrow(fulldata),nrow(fulldata)*.7)
+sample(train)
+test= -train
+test
+modeldata=fulldata[train,]
+validationdata= fulldata[test,]
+View(modeldata)
+summary(modeldata)
+quantile(modeldata$Age,0.995)
+quantile(modeldata$Age,0.999)
+summary(modeldata$Age)
+modeldata$Age <- ifelse(modeldata$Age>75, 75 , modeldata$Age)
+summary(modeldata$Age)
+View(modeldata[!complete.cases(modeldata),])
+View(modeldata)
+modeldata$Housing[modeldata$Housing==""]<-"A152"
+summary(modeldata)
+?gl
+?table
+table(modeldata$Num_Dependents)
+table(modeldata$Default_On_Payment)
+View(modeldata)
+table(modeldata$Num_Dependents,modeldata$Default_On_Payment)
+?aggregate
+aggregate(modeldata$Num_Dependents, by=list(modeldata$Num_Dependents,
+                                            modeldata$Default_On_Payment),length)
+View(modeldata)
+nrow(modeldata)
+?length
+table(modeldata$Job_Status,modeldata$Default_On_Payment)
+aggregate(modeldata$Job_Status, by=list(modeldata$Job_Status,
+                                        modeldata$Default_On_Payment),length)
+modeldata$Job_Status[modeldata$Job_Status==""] <- "A174"
+modeldata$dummya171 <- ifelse(modeldata$Job_Status=="A171",1,0)
+modeldata$dummya172 <- ifelse(modeldata$Job_Status=="A172",1,0)
+modeldata$dummya173 <- ifelse(modeldata$Job_Status=="A173",1,0)
+attach(modeldata)
+table(Purpose_Credit_Taken,Default_On_Payment)
+modeldata$Purpose_Credit_Taken_Low<-ifelse(modeldata$Purpose_Credit_Taken=="P41"|
+                                          modeldata$Purpose_Credit_Taken=="P43"|
+                                      modeldata$Purpose_Credit_Taken=="P48",1,0)
+modeldata$Purpose_Credit_Taken_High<-ifelse(modeldata$Purpose_Credit_Taken=="P49"|
+                                            modeldata$Purpose_Credit_Taken=="P40"|
+                                            modeldata$Purpose_Credit_Taken=="P45"|
+                                            modeldata$Purpose_Credit_Taken=="P50"|
+                                            modeldata$Purpose_Credit_Taken=="P46"
+                                            ,1,0)
+View(modeldata)
+table(modeldata$Status_Checking_Accnt,modeldata$Default_On_Payment)
+modeldata$Status_Checking_Accnt_High<-ifelse(modeldata$Status_Checking_Accnt=="S11"
+                                              ,1,0)
+modeldata$Status_Checking_Accnt_Medium<-ifelse(modeldata$Status_Checking_Accnt=="S12"
+                                               ,1,0)
+table(modeldata$Credit_History,modeldata$Default_On_Payment)
+modeldata$Credit_History_HIgh <- ifelse(modeldata$Credit_History =="A30"|
+                                          modeldata$Credit_History=="A31",1,0)
+modeldata$Credit_History_Low<- ifelse(modeldata$Credit_History=="A34",1,0)
+table(modeldata$Years_At_Present_Employment,modeldata$Default_On_Payment)
+modeldata$Years_At_Present_Employment_High<-ifelse(modeldata$Years_At_Present_Employment=="E71"
+                                                   | modeldata$Years_At_Present_Employment=="E72"
+                                                   ,1,0)
+modeldata$Years_At_Present_Employment_Medium<-ifelse(modeldata$Years_At_Present_Employment=="E73",
+                                                     1,0)
+table(modeldata$Marital_Status_Gender,modeldata$Default_On_Payment)
+modeldata$Marital_Status_Gender_D<-ifelse(modeldata$Marital_Status_Gender=="A91"|
+                                            modeldata$Marital_Status_Gender=="A92"
+                                          ,1,0)
+modeldata$Other_Debtors_Guarantors_D<-ifelse(modeldata$Other_Debtors_Guarantors=="A103",1,0)
+modeldata$Housing_D<-ifelse(modeldata$Housing=="A152",1,0)
+modeldata$Foreign_Worker_D<-ifelse(modeldata$Foreign_Worker=="A201",1,0)
+table(modeldata$Age,modeldata$Default_On_Payment)
+modeldata$Age_D<-ifelse(modeldata$Age<30,1,0)
+modeldata$Credit_Amount_D<-ifelse(modeldata$Credit_Amount<5000,0,1)
+modeldata$Current_Address_Yrs_D<-ifelse(modeldata$Current_Address_Yrs==1,0,1)
+install.packages("car")
+library(car)
+attach(modeldata)
+View(modeldata)
+vif_output<- lm(Default_On_Payment~Current_Address_Yrs_D+
+                  Duration_in_Months+
+                  Credit_Amount_D+
+                  Age_D+
+                Foreign_Worker_D+
+                  Housing_D+
+                  Other_Debtors_Guarantors_D+
+                  Marital_Status_Gender_D+
+                Years_At_Present_Employment_High+Years_At_Present_Employment_Medium+
+                  Credit_History_HIgh+Credit_History_Low+
+                  Status_Checking_Accnt_High+Status_Checking_Accnt_Medium+
+                  Purpose_Credit_Taken_High+ Purpose_Credit_Taken_Low +
+                 dummya171+dummya172+dummya173,data= modeldata)
+?vif
+vif(vif_output)
+multicoll_out1<-lm(Default_On_Payment~dummya172,data= modeldata)
+multicoll_out2<-lm(Default_On_Payment~dummya173, data= modeldata)
+summary(multicoll_out1)
+summary(multicoll_out2)
+vif_output<- lm(Default_On_Payment~Current_Address_Yrs_D+
+                  Duration_in_Months+
+                  Credit_Amount_D+
+                  Age_D+
+                  Foreign_Worker_D+
+                  Housing_D+
+                  Other_Debtors_Guarantors_D+
+                  Marital_Status_Gender_D+
+                  Years_At_Present_Employment_High+Years_At_Present_Employment_Medium+
+                  Credit_History_HIgh+Credit_History_Low+
+                  Status_Checking_Accnt_High+Status_Checking_Accnt_Medium+
+                  Purpose_Credit_Taken_High+ Purpose_Credit_Taken_Low +
+                  dummya171+dummya172,data= modeldata)
+vif(vif_output)
+multicoll_out3<-lm(Default_On_Payment~Purpose_Credit_Taken_High,data=modeldata)
+plot(validationdata)
+multicoll_out4<-lm(Default_On_Payment~Purpose_Credit_Taken_Low,data=modeldata)
+summary(multicoll_out3)
+summary(multicoll_out4)
+vif_output<- lm(Default_On_Payment~Current_Address_Yrs_D+
+                  Duration_in_Months+
+                  Credit_Amount_D+
+                  Age_D+
+                  Foreign_Worker_D+
+                  Housing_D+
+                  Other_Debtors_Guarantors_D+
+                  Marital_Status_Gender_D+
+                  Years_At_Present_Employment_High+Years_At_Present_Employment_Medium+
+                  Credit_History_HIgh+Credit_History_Low+
+                  Status_Checking_Accnt_High+Status_Checking_Accnt_Medium
+                + Purpose_Credit_Taken_Low +
+                  dummya171+dummya172,data= modeldata)
+vif(vif_output)
+?glm
+logreg_output <- glm(Default_On_Payment~ dummya171+dummya172+Purpose_Credit_Taken_Low
+                     +Status_Checking_Accnt_High+Status_Checking_Accnt_Medium+
+                       Credit_History_HIgh+Credit_History_Low+Years_At_Present_Employment_High
+                     +Years_At_Present_Employment_Medium+Marital_Status_Gender_D+
+                       Other_Debtors_Guarantors_D+Housing_D+Foreign_Worker_D+Age_D+
+                       Credit_Amount_D+Current_Address_Yrs_D+Duration_in_Months,
+                     family=binomial(logit),data=modeldata)
+summary(logreg_output,direction="forward")
+summary(logreg_output)
+pchisq(4284.5-3416.9,3499-3482)
+1~pchisq(4284.5,3499)
+library(islr)
+logreg_output <- glm(Default_On_Payment~Purpose_Credit_Taken_Low
+                     +Status_Checking_Accnt_High+Status_Checking_Accnt_Medium+
+                       Credit_History_HIgh+Credit_History_Low+Years_At_Present_Employment_High
+                     +Marital_Status_Gender_D+
+                       Other_Debtors_Guarantors_D+Housing_D+Foreign_Worker_D+Age_D+
+                       Current_Address_Yrs_D+Duration_in_Months,
+                     family=binomial(logit),data=modeldata)
+summary(logreg_output)
+modeldata$predicted_prob<- predict(logreg_output,modeldata,type="response")
+View(modeldata)
+validationdata$Age <- ifelse(validationdata$Age>75, 75 , validationdata$Age)
+validationdata$Housing[validationdata$Housing==""]<-"A152"
+validationdata$Job_Status[validationdata$Job_Status==""] <- "A174"
+validationdata$dummya171 <- ifelse(validationdata$Job_Status=="A171",1,0)
+validationdata$dummya172 <- ifelse(validationdata$Job_Status=="A172",1,0)
+validationdata$dummya173 <- ifelse(validationdata$Job_Status=="A173",1,0)
+validationdata$Purpose_Credit_Taken_Low<-ifelse(validationdata$Purpose_Credit_Taken=="P41"|
+                                                  validationdata$Purpose_Credit_Taken=="P43"|
+                                                  validationdata$Purpose_Credit_Taken=="P48",1,0)
+validationdata$Purpose_Credit_Taken_High<-ifelse(validationdata$Purpose_Credit_Taken=="P49"|
+                                                   validationdata$Purpose_Credit_Taken=="P40"|
+                                                   validationdata$Purpose_Credit_Taken=="P45"|
+                                                   validationdata$Purpose_Credit_Taken=="P50"|
+                                                   validationdata$Purpose_Credit_Taken=="P46"
+                                                 ,1,0)
+table(validationdata$Status_Checking_Accnt,validationdata$Default_On_Payment)
+validationdata$Status_Checking_Accnt_High<-ifelse(validationdata$Status_Checking_Accnt=="S11"
+                                                  ,1,0)
+validationdata$Status_Checking_Accnt_Medium<-ifelse(validationdata$Status_Checking_Accnt=="S12"
+                                                    ,1,0)
+validationdata$Credit_History_HIgh <- ifelse(validationdata$Credit_History =="A30"|
+                                               validationdata$Credit_History=="A31",1,0)
+validationdata$Credit_History_Low<- ifelse(validationdata$Credit_History=="A34",1,0)
+validationdata$Years_At_Present_Employment_High<-ifelse(validationdata$Years_At_Present_Employment=="E71"
+                                                        | validationdata$Years_At_Present_Employment=="E72"
+                                                        ,1,0)
+validationdata$Years_At_Present_Employment_Medium<-ifelse(validationdata$Years_At_Present_Employment=="E73",
+                                                          1,0)
+validationdata$Marital_Status_Gender_D<-ifelse(validationdata$Marital_Status_Gender=="A91"|
+                                                 validationdata$Marital_Status_Gender=="A92"
+                                               ,1,0)
+validationdata$Other_Debtors_Guarantors_D<-ifelse(validationdata$Other_Debtors_Guarantors=="A103",1,0)
+validationdata$Housing_D<-ifelse(validationdata$Housing=="A152",1,0)
+validationdata$Foreign_Worker_D<-ifelse(validationdata$Foreign_Worker=="A201",1,0)
+validationdata$Age_D<-ifelse(validationdata$Age<30,1,0)
+validationdata$Credit_Amount_D<-ifelse(validationdata$Credit_Amount<5000,0,1)
+validationdata$Current_Address_Yrs_D<-ifelse(validationdata$Current_Address_Yrs==1,0,1)
+vif_noutput<- lm(Default_On_Payment~Purpose_Credit_Taken_Low
+                 +Status_Checking_Accnt_High+Status_Checking_Accnt_Medium+
+                   Credit_History_HIgh+Credit_History_Low+Years_At_Present_Employment_High
+                 +Marital_Status_Gender_D+
+                   Other_Debtors_Guarantors_D+Housing_D+Foreign_Worker_D+Age_D+
+                   Current_Address_Yrs_D+Duration_in_Months,data=validationdata)
+vif(vif_noutput)
+validationdata$Predicted_prob<-predict(logreg_output,validationdata,type="response")
+View(validationdata)
+plot(validationdata$Predicted_prob)
+modeldata$final_prediction<-ifelse(modeldata$predicted_prob>0.3,1,0)
+validationdata$final_prediction<-ifelse(validationdata$Predicted_prob>0.3,1,0)
+table(modeldata$Default_On_Payment,modeldata$final_prediction)
+table(validationdata$Default_On_Payment,validationdata$final_prediction)
